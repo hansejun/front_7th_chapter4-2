@@ -34,6 +34,7 @@ import { Lecture } from './types.ts';
 import { parseSchedule } from './utils.ts';
 import axios from 'axios';
 import { DAY_LABELS } from './constants.ts';
+import { createCachedFunction } from './utils/apiCache.ts';
 
 interface Props {
   searchInfo: {
@@ -86,9 +87,18 @@ const fetchMajors = () => axios.get<Lecture[]>('/schedules-majors.json');
 const fetchLiberalArts = () =>
   axios.get<Lecture[]>('/schedules-liberal-arts.json');
 
-// TODO: 이 코드를 개선해서 API 호출을 최소화 해보세요 + Promise.all이 현재 잘못 사용되고 있습니다. 같이 개선해주세요.
-const fetchAllLectures = async () =>
-  Promise.all([fetchMajors(), fetchLiberalArts()]);
+const cachedFetchMajors = createCachedFunction(fetchMajors);
+const cachedFetchLiberalArts = createCachedFunction(fetchLiberalArts);
+
+const fetchAllLectures = () =>
+  Promise.all([
+    cachedFetchMajors(),
+    cachedFetchLiberalArts(),
+    cachedFetchMajors(),
+    cachedFetchLiberalArts(),
+    cachedFetchMajors(),
+    cachedFetchLiberalArts(),
+  ]);
 
 // TODO: 이 컴포넌트에서 불필요한 연산이 발생하지 않도록 다양한 방식으로 시도해주세요.
 const SearchDialog = ({ searchInfo, onClose }: Props) => {

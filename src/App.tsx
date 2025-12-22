@@ -1,16 +1,12 @@
-import { ChakraProvider } from "@chakra-ui/react";
-import { ScheduleProvider } from "./ScheduleContext.tsx";
-import { ScheduleTables } from "./ScheduleTables.tsx";
-
+import { ChakraProvider } from '@chakra-ui/react';
+import { ScheduleProvider } from './ScheduleContext.tsx';
+import { ScheduleTables } from './ScheduleTables.tsx';
 
 function App() {
-
   return (
     <ChakraProvider>
       <ScheduleProvider>
-     
-          <ScheduleTables/>
-    
+        <ScheduleTables />
       </ScheduleProvider>
     </ChakraProvider>
   );

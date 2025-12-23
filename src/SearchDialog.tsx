@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Box,
   Button,
@@ -100,6 +100,36 @@ const fetchAllLectures = () =>
     cachedFetchLiberalArts(),
   ]);
 
+const getFilteredLectures = (
+  lectures: Lecture[],
+  searchOptions: SearchOption
+) => {
+  const { query = '', credits, grades, days, times, majors } = searchOptions;
+  return lectures
+    .filter(
+      lecture =>
+        lecture.title.toLowerCase().includes(query.toLowerCase()) ||
+        lecture.id.toLowerCase().includes(query.toLowerCase())
+    )
+    .filter(lecture => grades.length === 0 || grades.includes(lecture.grade))
+    .filter(lecture => majors.length === 0 || majors.includes(lecture.major))
+    .filter(lecture => !credits || lecture.credits.startsWith(String(credits)))
+    .filter(lecture => {
+      if (days.length === 0) {
+        return true;
+      }
+      const schedules = lecture.schedule ? parseSchedule(lecture.schedule) : [];
+      return schedules.some(s => days.includes(s.day));
+    })
+    .filter(lecture => {
+      if (times.length === 0) {
+        return true;
+      }
+      const schedules = lecture.schedule ? parseSchedule(lecture.schedule) : [];
+      return schedules.some(s => s.range.some(time => times.includes(time)));
+    });
+};
+
 // TODO: 이 컴포넌트에서 불필요한 연산이 발생하지 않도록 다양한 방식으로 시도해주세요.
 const SearchDialog = ({ searchInfo, onClose }: Props) => {
   const { setSchedulesMap } = useScheduleContext();
@@ -116,47 +146,21 @@ const SearchDialog = ({ searchInfo, onClose }: Props) => {
     majors: [],
   });
 
-  const getFilteredLectures = () => {
-    const { query = '', credits, grades, days, times, majors } = searchOptions;
-    return lectures
-      .filter(
-        lecture =>
-          lecture.title.toLowerCase().includes(query.toLowerCase()) ||
-          lecture.id.toLowerCase().includes(query.toLowerCase()),
-      )
-      .filter(lecture => grades.length === 0 || grades.includes(lecture.grade))
-      .filter(lecture => majors.length === 0 || majors.includes(lecture.major))
-      .filter(
-        lecture => !credits || lecture.credits.startsWith(String(credits)),
-      )
-      .filter(lecture => {
-        if (days.length === 0) {
-          return true;
-        }
-        const schedules = lecture.schedule
-          ? parseSchedule(lecture.schedule)
-          : [];
-        return schedules.some(s => days.includes(s.day));
-      })
-      .filter(lecture => {
-        if (times.length === 0) {
-          return true;
-        }
-        const schedules = lecture.schedule
-          ? parseSchedule(lecture.schedule)
-          : [];
-        return schedules.some(s => s.range.some(time => times.includes(time)));
-      });
-  };
+  const allMajors = useMemo(
+    () => [...new Set(lectures.map(lecture => lecture.major))],
+    [lectures]
+  );
 
-  const filteredLectures = getFilteredLectures();
+  const filteredLectures = useMemo(() => {
+    return getFilteredLectures(lectures, searchOptions);
+  }, [lectures, searchOptions]);
+
   const lastPage = Math.ceil(filteredLectures.length / PAGE_SIZE);
   const visibleLectures = filteredLectures.slice(0, page * PAGE_SIZE);
-  const allMajors = [...new Set(lectures.map(lecture => lecture.major))];
 
   const changeSearchOption = (
     field: keyof SearchOption,
-    value: SearchOption[typeof field],
+    value: SearchOption[typeof field]
   ) => {
     setPage(1);
     setSearchOptions({ ...searchOptions, [field]: value });
@@ -206,7 +210,7 @@ const SearchDialog = ({ searchInfo, onClose }: Props) => {
           setPage(prevPage => Math.min(lastPage, prevPage + 1));
         }
       },
-      { threshold: 0, root: $loaderWrapper },
+      { threshold: 0, root: $loaderWrapper }
     );
 
     observer.observe($loader);
@@ -318,7 +322,7 @@ const SearchDialog = ({ searchInfo, onClose }: Props) => {
                             onClick={() =>
                               changeSearchOption(
                                 'times',
-                                searchOptions.times.filter(v => v !== time),
+                                searchOptions.times.filter(v => v !== time)
                               )
                             }
                           />
@@ -367,7 +371,7 @@ const SearchDialog = ({ searchInfo, onClose }: Props) => {
                           onClick={() =>
                             changeSearchOption(
                               'majors',
-                              searchOptions.majors.filter(v => v !== major),
+                              searchOptions.majors.filter(v => v !== major)
                             )
                           }
                         />
@@ -394,6 +398,7 @@ const SearchDialog = ({ searchInfo, onClose }: Props) => {
                 </CheckboxGroup>
               </FormControl>
             </HStack>
+
             <Text align="right">검색결과: {filteredLectures.length}개</Text>
             <Box>
               <Table>

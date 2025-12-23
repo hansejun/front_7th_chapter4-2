@@ -1,8 +1,9 @@
 import { Button, ButtonGroup, Flex, Heading, Stack } from '@chakra-ui/react';
 import ScheduleTable from './ScheduleTable.tsx';
 import { useSchedulesMap, useSetSchedulesMap } from './ScheduleContext.tsx';
+import { useSetSearchInfo } from './SearchInfoContext.tsx';
 import SearchDialog from './SearchDialog.tsx';
-import { memo, useState } from 'react';
+import { memo } from 'react';
 import ScheduleDndProvider from './ScheduleDndProvider.tsx';
 import { useAutoCallback } from './useAutoCallback.ts';
 import type { Schedule } from './types.ts';
@@ -12,13 +13,6 @@ interface ScheduleTableItemProps {
   schedules: Schedule[];
   index: number;
   disabledRemoveButton: boolean;
-  onDuplicate: (tableId: string) => void;
-  onRemove: (tableId: string) => void;
-  onSearchOpen: (info: {
-    tableId: string;
-    day?: string;
-    time?: number;
-  }) => void;
 }
 
 const ScheduleTableItem = memo(
@@ -27,12 +21,23 @@ const ScheduleTableItem = memo(
     schedules,
     index,
     disabledRemoveButton,
-    onDuplicate,
-    onRemove,
-    onSearchOpen,
   }: ScheduleTableItemProps) => {
     const setSchedulesMap = useSetSchedulesMap();
-    // console.log('render@@@@');
+    const setSearchInfo = useSetSearchInfo();
+
+    const onDuplicate = useAutoCallback((targetId: string) => {
+      setSchedulesMap(prev => ({
+        ...prev,
+        [`schedule-${Date.now()}`]: [...prev[targetId]],
+      }));
+    });
+
+    const onRemove = useAutoCallback((targetId: string) => {
+      setSchedulesMap(prev => {
+        delete prev[targetId];
+        return { ...prev };
+      });
+    });
 
     return (
       <Stack width="600px">
@@ -43,7 +48,7 @@ const ScheduleTableItem = memo(
           <ButtonGroup size="sm" isAttached>
             <Button
               colorScheme="green"
-              onClick={() => onSearchOpen({ tableId })}
+              onClick={() => setSearchInfo({ tableId })}
             >
               시간표 추가
             </Button>
@@ -68,7 +73,7 @@ const ScheduleTableItem = memo(
             schedules={schedules}
             tableId={tableId}
             onScheduleTimeClick={timeInfo =>
-              onSearchOpen({ tableId, ...timeInfo })
+              setSearchInfo({ tableId, ...timeInfo })
             }
             onDeleteButtonClick={({ day, time }) =>
               setSchedulesMap(prev => ({
@@ -88,34 +93,7 @@ const ScheduleTableItem = memo(
 
 export const ScheduleTables = () => {
   const schedulesMap = useSchedulesMap();
-  const setSchedulesMap = useSetSchedulesMap();
-  const [searchInfo, setSearchInfo] = useState<{
-    tableId: string;
-    day?: string;
-    time?: number;
-  } | null>(null);
-
   const disabledRemoveButton = Object.keys(schedulesMap).length === 1;
-
-  const duplicate = useAutoCallback((targetId: string) => {
-    setSchedulesMap(prev => ({
-      ...prev,
-      [`schedule-${Date.now()}`]: [...prev[targetId]],
-    }));
-  });
-
-  const remove = useAutoCallback((targetId: string) => {
-    setSchedulesMap(prev => {
-      delete prev[targetId];
-      return { ...prev };
-    });
-  });
-
-  const handleSearchOpen = useAutoCallback(
-    (info: { tableId: string; day?: string; time?: number }) => {
-      setSearchInfo(info);
-    }
-  );
 
   return (
     <>
@@ -127,16 +105,10 @@ export const ScheduleTables = () => {
             schedules={schedules}
             index={index}
             disabledRemoveButton={disabledRemoveButton}
-            onDuplicate={duplicate}
-            onRemove={remove}
-            onSearchOpen={handleSearchOpen}
           />
         ))}
       </Flex>
-      <SearchDialog
-        searchInfo={searchInfo}
-        onClose={() => setSearchInfo(null)}
-      />
+      <SearchDialog />
     </>
   );
 };

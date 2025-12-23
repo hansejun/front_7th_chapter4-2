@@ -1,28 +1,58 @@
-import React, { createContext, PropsWithChildren, useContext, useState } from "react";
-import { Schedule } from "./types.ts";
-import dummyScheduleMap from "./dummyScheduleMap.ts";
+import React, {
+  createContext,
+  PropsWithChildren,
+  useContext,
+  useState,
+} from 'react';
+import { Schedule } from './types.ts';
+import dummyScheduleMap from './dummyScheduleMap.ts';
 
-interface ScheduleContextType {
-  schedulesMap: Record<string, Schedule[]>;
-  setSchedulesMap: React.Dispatch<React.SetStateAction<Record<string, Schedule[]>>>;
-}
+type SchedulesMap = Record<string, Schedule[]>;
+type SetSchedulesMap = React.Dispatch<React.SetStateAction<SchedulesMap>>;
 
-const ScheduleContext = createContext<ScheduleContextType | undefined>(undefined);
+// Context 분리
+const SchedulesMapContext = createContext<SchedulesMap | undefined>(undefined); // Query
+const SetSchedulesMapContext = createContext<SetSchedulesMap | undefined>(
+  undefined
+); // Command
 
-export const useScheduleContext = () => {
-  const context = useContext(ScheduleContext);
+// 읽기
+export const useSchedulesMap = () => {
+  const context = useContext(SchedulesMapContext);
   if (context === undefined) {
-    throw new Error('useSchedule must be used within a ScheduleProvider');
+    throw new Error('useSchedulesMap must be used within a ScheduleProvider');
   }
   return context;
 };
 
+// 쓰기
+export const useSetSchedulesMap = () => {
+  const context = useContext(SetSchedulesMapContext);
+  if (context === undefined) {
+    throw new Error(
+      'useSetSchedulesMap must be used within a ScheduleProvider'
+    );
+  }
+  return context;
+};
+
+// 기존 훅 (호환성 유지)
+export const useScheduleContext = () => {
+  return {
+    schedulesMap: useSchedulesMap(),
+    setSchedulesMap: useSetSchedulesMap(),
+  };
+};
+
 export const ScheduleProvider = ({ children }: PropsWithChildren) => {
-  const [schedulesMap, setSchedulesMap] = useState<Record<string, Schedule[]>>(dummyScheduleMap);
+  const [schedulesMap, setSchedulesMap] =
+    useState<SchedulesMap>(dummyScheduleMap);
 
   return (
-    <ScheduleContext.Provider value={{ schedulesMap, setSchedulesMap }}>
-      {children}
-    </ScheduleContext.Provider>
+    <SetSchedulesMapContext.Provider value={setSchedulesMap}>
+      <SchedulesMapContext.Provider value={schedulesMap}>
+        {children}
+      </SchedulesMapContext.Provider>
+    </SetSchedulesMapContext.Provider>
   );
 };

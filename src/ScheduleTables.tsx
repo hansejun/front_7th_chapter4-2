@@ -39,6 +39,24 @@ const ScheduleTableItem = memo(
       });
     });
 
+    const onScheduleTimeClick = useAutoCallback(
+      (timeInfo: { day: string; time: number }) => {
+        setSearchInfo({ tableId, ...timeInfo });
+      }
+    );
+
+    const onDeleteButtonClick = useAutoCallback(
+      ({ day, time }: { day: string; time: number }) => {
+        setSchedulesMap(prev => ({
+          ...prev,
+          [tableId]: prev[tableId].filter(
+            schedule =>
+              schedule.day !== day || !schedule.range.includes(time)
+          ),
+        }));
+      }
+    );
+
     return (
       <Stack width="600px">
         <Flex justifyContent="space-between" alignItems="center">
@@ -72,18 +90,8 @@ const ScheduleTableItem = memo(
           <ScheduleTable
             schedules={schedules}
             tableId={tableId}
-            onScheduleTimeClick={timeInfo =>
-              setSearchInfo({ tableId, ...timeInfo })
-            }
-            onDeleteButtonClick={({ day, time }) =>
-              setSchedulesMap(prev => ({
-                ...prev,
-                [tableId]: prev[tableId].filter(
-                  schedule =>
-                    schedule.day !== day || !schedule.range.includes(time)
-                ),
-              }))
-            }
+            onScheduleTimeClick={onScheduleTimeClick}
+            onDeleteButtonClick={onDeleteButtonClick}
           />
         </ScheduleDndProvider>
       </Stack>

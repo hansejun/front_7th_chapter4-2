@@ -11,7 +11,8 @@
     "build": "tsc -b && vite build",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
     "format": "prettier --write \"src/**/*.{ts,tsx,js,jsx,json,css,md}\"",
-    "format:check": "prettier --check \"src/**/*.{ts,tsx,js,jsx,json,css,md}\""
+    "format:check": "prettier --check \"src/**/*.{ts,tsx,js,jsx,json,css,md}\"",
+    "deploy": "gh-pages -d dist"
   },
   "dependencies": {
     "@chakra-ui/icons": "2.2.4",
@@ -22,6 +23,7 @@
     "@emotion/styled": "latest",
     "axios": "latest",
     "framer-motion": "latest",
+    "gh-pages": "^6.3.0",
     "msw": "latest",
     "react": "latest",
     "react-dom": "latest"

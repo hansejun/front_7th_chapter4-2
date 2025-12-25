@@ -20,9 +20,12 @@ import { SearchResults } from './searchDialog/SearchResults';
 import { Lecture } from './types';
 import { createCachedFunction } from './utils/apiCache';
 
-const fetchMajors = () => axios.get<Lecture[]>('/schedules-majors.json');
+const BASE_URL = import.meta.env.BASE_URL;
+
+const fetchMajors = () =>
+  axios.get<Lecture[]>(`${BASE_URL}/schedules-majors.json`);
 const fetchLiberalArts = () =>
-  axios.get<Lecture[]>('/schedules-liberal-arts.json');
+  axios.get<Lecture[]>(`${BASE_URL}/schedules-liberal-arts.json`);
 
 const cachedFetchMajors = createCachedFunction(fetchMajors);
 const cachedFetchLiberalArts = createCachedFunction(fetchLiberalArts);

@@ -4,6 +4,7 @@ import react from '@vitejs/plugin-react-swc';
 
 export default mergeConfig(
   defineConfig({
+    base: '/front_7th_chapter4-2/',
     plugins: [react()],
   }),
   defineTestConfig({
@@ -12,9 +13,9 @@ export default mergeConfig(
       environment: 'jsdom',
       setupFiles: './src/setupTests.ts',
       coverage: {
-        reportsDirectory: "./.coverage",
-        reporter: ['lcov', 'json', 'json-summary']
+        reportsDirectory: './.coverage',
+        reporter: ['lcov', 'json', 'json-summary'],
       },
     },
   })
-)
+);

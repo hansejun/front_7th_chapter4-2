@@ -1,7 +1,7 @@
 import { Button, ButtonGroup, Flex, Heading, Stack } from '@chakra-ui/react';
 import ScheduleTable from './ScheduleTable.tsx';
 import { useSchedulesMap, useSetSchedulesMap } from './ScheduleContext.tsx';
-import { useSetSearchInfo } from './SearchInfoContext.tsx';
+import { useSearchInfo, useSetSearchInfo } from './SearchInfoContext.tsx';
 import SearchDialog from './SearchDialog.tsx';
 import { memo } from 'react';
 import ScheduleDndProvider from './ScheduleDndProvider.tsx';
@@ -98,6 +98,7 @@ const ScheduleTableItem = memo(
 
 export const ScheduleTables = () => {
   const schedulesMap = useSchedulesMap();
+  const searchInfo = useSearchInfo();
   const disabledRemoveButton = Object.keys(schedulesMap).length === 1;
 
   return (
@@ -113,7 +114,7 @@ export const ScheduleTables = () => {
           />
         ))}
       </Flex>
-      <SearchDialog />
+      {searchInfo && <SearchDialog />}
     </>
   );
 };
